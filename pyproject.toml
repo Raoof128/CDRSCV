@@ -1,0 +1,33 @@
+[project]
+name = "cdrcsv"
+version = "0.1.0"
+description = "Consumer Data Right (CDR) security conformance validator"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+  {name = "CDR Validator"}
+]
+dependencies = [
+  "requests>=2.32.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "pytest-cov>=4.1",
+  "ruff>=0.6",
+  "mypy>=1.11",
+]
+
+[project.scripts]
+cdrcsv = "cdrcsv.cli:main"
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-q"
+testpaths = ["tests"]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+

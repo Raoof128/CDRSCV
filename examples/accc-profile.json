@@ -1,0 +1,22 @@
+{
+  "accc-relaxed": {
+    "request": {
+      "base_url": "https://sandbox.api.consumerdatastandards.gov.au",
+      "endpoint": "/cds-au/v1/banking/products",
+      "timeout": 15.0
+    },
+    "expected_headers": [
+      {"name": "x-v", "pattern": "^3$"},
+      {"name": "x-min-v", "pattern": "^1$"}
+    ],
+    "response_expectations": {
+      "status_codes": [200],
+      "content_type_prefixes": ["application/json"],
+      "max_latency_seconds": 3.0
+    },
+    "tls": {
+      "min_version": "TLSv1.2",
+      "allowed_cipher_substrings": ["ECDHE", "AES", "GCM"]
+    }
+  }
+}
