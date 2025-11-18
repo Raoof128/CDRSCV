@@ -5,17 +5,18 @@ from __future__ import annotations
 import datetime as dt
 import socket
 import ssl
+from collections.abc import Mapping
 from dataclasses import dataclass
 from urllib.parse import urlparse
 
 from ..config import TLSRequirements
-from .base import Check, CheckResult
+from .base import CheckResult
 
 
 @dataclass(slots=True)
 class TLSInspection:
-    version: str
-    cipher: str
+    version: str | None
+    cipher: str | None
     not_before: str | None
     not_after: str | None
 
@@ -40,16 +41,29 @@ class TLSInspector:
         with socket.create_connection((host, port), timeout=self.timeout) as sock:
             with context.wrap_socket(sock, server_hostname=host) as secure_sock:
                 version = secure_sock.version()
-                cipher = secure_sock.cipher()[0]
+                cipher_info = secure_sock.cipher()
+                cipher = cipher_info[0] if cipher_info else None
                 cert = secure_sock.getpeercert()
 
-        not_before = cert.get("notBefore") if cert else None
-        not_after = cert.get("notAfter") if cert else None
+        not_before: str | None = None
+        not_after: str | None = None
+        if isinstance(cert, Mapping):
+            not_before_value = cert.get("notBefore")
+            if isinstance(not_before_value, str):
+                not_before = not_before_value
+            not_after_value = cert.get("notAfter")
+            if isinstance(not_after_value, str):
+                not_after = not_after_value
 
-        return TLSInspection(version=version, cipher=cipher, not_before=not_before, not_after=not_after)
+        return TLSInspection(
+            version=version,
+            cipher=cipher,
+            not_before=not_before,
+            not_after=not_after,
+        )
 
 
-class TLSCheck(Check):
+class TLSCheck:
     """Validate TLS properties against the FAPI requirements."""
 
     name = "TLS posture"
@@ -80,6 +94,14 @@ class TLSCheck(Check):
 
     def _check_version(self, inspection: TLSInspection) -> CheckResult:
         min_version = self.requirements.min_version
+        if inspection.version is None:
+            return CheckResult(
+                name="tls:version",
+                passed=False,
+                details="TLS version was not negotiated",
+                evidence={"version": inspection.version, "min_version": min_version},
+            )
+
         passed = self._version_cmp(inspection.version, min_version) >= 0
         return CheckResult(
             name="tls:version",
@@ -90,8 +112,8 @@ class TLSCheck(Check):
 
     def _check_cipher(self, inspection: TLSInspection) -> CheckResult:
         allowed = self.requirements.allowed_cipher_substrings
-        cipher = inspection.cipher
-        passed = any(part.upper() in cipher.upper() for part in allowed)
+        cipher = inspection.cipher or ""
+        passed = bool(cipher) and any(part.upper() in cipher.upper() for part in allowed)
         return CheckResult(
             name="tls:cipher",
             passed=passed,

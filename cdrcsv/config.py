@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
+from typing import Any, cast
 
 
 @dataclass(slots=True)
@@ -89,10 +90,12 @@ class ValidatorProfile:
 
     @classmethod
     def from_dict(cls, name: str, data: Mapping[str, object]) -> ValidatorProfile:
-        request_data = data.get("request", {})
-        headers_data = data.get("expected_headers", [])
-        response_data = data.get("response_expectations", {})
-        tls_data = data.get("tls", {})
+        request_data = cast(Mapping[str, Any], data.get("request", {}))
+        headers_data = cast(Sequence[Mapping[str, Any]], data.get("expected_headers", []))
+        response_data = cast(
+            Mapping[str, Any], data.get("response_expectations", {})
+        )
+        tls_data = cast(Mapping[str, Any], data.get("tls", {}))
 
         request = HTTPRequestConfig(**request_data)
         header_expectations = [HeaderExpectation(**item) for item in headers_data]

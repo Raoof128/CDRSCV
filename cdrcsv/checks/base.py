@@ -25,12 +25,3 @@ class CheckResult:
             payload["evidence"] = self.evidence
         return payload
 
-
-class Check:
-    """Base class for validator checks."""
-
-    name = "unnamed"
-
-    def run(self, **kwargs: Any) -> CheckResult:  # pragma: no cover - interface
-        raise NotImplementedError
-

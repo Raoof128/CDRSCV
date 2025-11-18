@@ -6,10 +6,10 @@ import re
 from collections.abc import Iterable, Mapping
 
 from ..config import HeaderExpectation
-from .base import Check, CheckResult
+from .base import CheckResult
 
 
-class HeaderCheck(Check):
+class HeaderCheck:
     """Ensure that required CDR/FAPI headers are present and well-formed."""
 
     name = "HTTP headers"

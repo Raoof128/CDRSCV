@@ -8,10 +8,10 @@ from datetime import timedelta
 from requests import Response
 
 from ..config import HTTPResponseExpectations
-from .base import Check, CheckResult
+from .base import CheckResult
 
 
-class HTTPResponseCheck(Check):
+class HTTPResponseCheck:
     """Ensure the HTTP response matches the configured expectations."""
 
     name = "HTTP response"

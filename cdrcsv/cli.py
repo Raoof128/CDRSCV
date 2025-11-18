@@ -7,6 +7,7 @@ import json
 import sys
 from collections.abc import Iterable, Mapping
 from pathlib import Path
+from typing import cast
 
 from .config import (
     HeaderExpectation,
@@ -123,17 +124,17 @@ def configure_profile(args: argparse.Namespace, *, profiles: Mapping[str, Valida
         raise SystemExit(f"Unknown profile '{args.profile}'") from exc
 
     base_request = base_profile.request
-    request_overrides = {
-        "base_url": args.base_url or base_request.base_url,
-        "endpoint": args.endpoint or base_request.endpoint,
-        "timeout": args.timeout if args.timeout is not None else base_request.timeout,
-    }
+    base_url_override: str = cast(str | None, args.base_url) or base_request.base_url
+    endpoint_override: str = cast(str | None, args.endpoint) or base_request.endpoint
+    timeout_override: float = (
+        cast(float, args.timeout) if args.timeout is not None else base_request.timeout
+    )
     request = HTTPRequestConfig(
         method=base_request.method,
-        base_url=request_overrides["base_url"],
-        endpoint=request_overrides["endpoint"],
+        base_url=base_url_override,
+        endpoint=endpoint_override,
         headers=base_request.headers,
-        timeout=request_overrides["timeout"],
+        timeout=timeout_override,
     )
 
     expected_headers = list(base_profile.expected_headers)
